@@ -1,0 +1,13 @@
+services:
+  - type: worker
+    name: nexus-premium-bot-v5
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python nexus_bot.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 8857390322:AAE6DkJTrKl3TzdR2u5fa6s7cBh592hYyNM
+      - key: OWNER_ID
+        value: "8526073588"
