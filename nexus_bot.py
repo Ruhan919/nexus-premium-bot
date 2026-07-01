@@ -20,7 +20,24 @@ import logging
 from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    import pytz
+    from datetime import timezone
+    class ZoneInfo:
+        def __init__(self, key):
+            self._tz = pytz.timezone(key)
+        def utcoffset(self, dt):
+            return self._tz.utcoffset(dt)
+        def fromutc(self, dt):
+            return self._tz.fromutc(dt)
+        def tzname(self, dt):
+            return self._tz.tzname(dt)
+        def localize(self, dt, is_dst=False):
+            return self._tz.localize(dt, is_dst=is_dst)
+        def __str__(self):
+            return str(self._tz)
 import tempfile
 import shutil
 import re
@@ -450,7 +467,7 @@ async def listapi_command(update: Update, context):
     for name, api in apis.items():
         default = "⭐ DEFAULT" if api.get("is_default") else ""
         status = "✅" if api.get("enabled", True) else "❌"
-        key_preview = api.get("key", "N/A")[:15] + "..."
+        key_preview = "******"
         msg += f"{status} **{name}** {default}\n"
         msg += f"   URL: {api.get('url', 'N/A')[:50]}\n"
         msg += f"   Key: {key_preview}\n\n"
