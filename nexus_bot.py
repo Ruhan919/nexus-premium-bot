@@ -47,7 +47,7 @@ BOT_DESCRIPTION = "NEXUS Premium Like Bot - Send unlimited likes with Multi-API 
 #                                               CONFIGURATION
 # ====================================================================================================
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "8857390322:AAE6DkJTrKl3TzdR2u5fa6s7cBh592hYyNM")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "7946266426:AAHo9m9fWsU7Fqf-p_LYnMKB6KrCMPV23u8")
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN environment variable required")
 
@@ -60,10 +60,11 @@ DATA_FILE = "bot_data.json"
 LOG_FILE = "bot.log"
 ERROR_LOG_FILE = "error_log.txt"
 
-OWNER_ID = int(os.environ.get("OWNER_ID", "8526073588"))
+OWNER_ID = int(os.environ.get("OWNER_ID", "7702588711"))
 OWNER_USERNAME = "@VIP_DARK_GOD"
 OWNER_CONTACT = "https://t.me/VIP_DARK_GOD"
 OWNER_NAME = "VIP DARK GOD"
+ADMIN_IDS = [int(x) for x in os.environ.get("ADMIN_IDS", "7702588711,8526073588").split(",")]
 
 DAILY_LIKE_TIME = "04:00"
 TIMEZONE = "Asia/Kolkata"
@@ -126,7 +127,15 @@ def is_owner(user_id) -> bool:
         return False
 
 def is_admin(user_id) -> bool:
-    return is_owner(user_id) or is_vip(user_id)
+    if is_owner(user_id):
+        return True
+    try:
+        return int(user_id) in ADMIN_IDS
+    except:
+        return False
+
+def is_admin_or_vip(user_id) -> bool:
+    return is_admin(user_id) or is_vip(user_id)
 
 def load_data() -> Dict:
     if os.path.exists(DATA_FILE):
@@ -429,8 +438,8 @@ async def removeapi_command(update: Update, context):
 
 async def listapi_command(update: Update, context):
     """List all APIs"""
-    if not is_owner(update.effective_user.id):
-        await update.message.reply_text("❌ Owner only!")
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("❌ Admin only!")
         return
     
     apis = get_active_apis()
@@ -456,8 +465,8 @@ async def listapi_command(update: Update, context):
 
 async def toggleapi_command(update: Update, context):
     """Enable/disable a custom API"""
-    if not is_owner(update.effective_user.id):
-        await update.message.reply_text("❌ Owner only!")
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("❌ Admin only!")
         return
     if not context.args:
         await update.message.reply_text("Usage: /toggleapi <name>")
@@ -543,8 +552,8 @@ async def addgroup_command(update: Update, context):
 
 async def removegroup_command(update: Update, context):
     """Remove a group from allowed list"""
-    if not is_owner(update.effective_user.id):
-        await update.message.reply_text("❌ Owner only!")
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("❌ Admin only!")
         return
     
     data = load_data()
@@ -574,8 +583,8 @@ async def removegroup_command(update: Update, context):
 
 async def listgroups_command(update: Update, context):
     """List all allowed groups"""
-    if not is_owner(update.effective_user.id):
-        await update.message.reply_text("❌ Owner only!")
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("❌ Admin only!")
         return
     
     data = load_data()
@@ -997,7 +1006,7 @@ async def start_command(update: Update, context):
     save_data(data)
     uid = user.id
     
-    if is_owner(uid):
+    if is_owner(uid) or is_admin(uid):
         await update.message.reply_text(
             f"╔══════════════════════════════════════════╗\n"
             f"║        🔑 NEXUS OWNER PANEL 🔑           ║\n"
@@ -1093,7 +1102,7 @@ async def myuids_command(update: Update, context):
 
 async def vipstatus_command(update: Update, context):
     uid = update.effective_user.id
-    if is_owner(uid):
+    if is_owner(uid) or is_admin(uid):
         await update.message.reply_text("👑 **Owner** - Unlimited access!")
     elif is_vip(uid):
         data = load_data()
